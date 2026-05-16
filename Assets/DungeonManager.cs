@@ -13,7 +13,9 @@ public class DungeonManager : MonoBehaviour
     public TileBase[] floorTiles;
     public TileBase[] wallTiles;
 
-    public GameObject doorPrefab;
+    public GameObject frontDoorPrefab;
+    public GameObject leftDoorPrefab;
+    public GameObject rightDoorPrefab;
 
     void Start()
     {
@@ -60,8 +62,36 @@ public class DungeonManager : MonoBehaviour
 
         foreach (var door in gen.doorTileData)
         {
+            Vector3Int doorCell =
+                new Vector3Int(
+                    door.position.x,
+                    door.position.y,
+                    0
+                );
+
+            // 문 위치의 벽 타일 제거
+            wallTilemap.SetTile(doorCell, null);
+
+            GameObject prefabToSpawn;
+
+            if (door.direction == DoorDirection.Left)
+            {
+                prefabToSpawn = leftDoorPrefab;
+            }
+            else if (door.direction == DoorDirection.Right)
+            {
+                prefabToSpawn = rightDoorPrefab;
+            }
+            else
+            {
+                prefabToSpawn = frontDoorPrefab;
+            }
+
+            if (prefabToSpawn == null)
+                continue;
+
             GameObject obj = Instantiate(
-                doorPrefab,
+                prefabToSpawn,
                 new Vector3(
                     door.position.x + 0.5f,
                     door.position.y + 0.5f,
