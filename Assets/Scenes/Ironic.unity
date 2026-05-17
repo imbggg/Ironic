@@ -790,9 +790,9 @@ MonoBehaviour:
   wallTiles:
   - {fileID: 11400000, guid: 900e44d0721cde0408bcfba532e5b275, type: 2}
   - {fileID: 11400000, guid: 900e44d0721cde0408bcfba532e5b275, type: 2}
-  frontDoorPrefab: {fileID: 3482377435969413018, guid: 283e7f96dd1c2094d901c3e8ff3c028b, type: 3}
-  leftDoorPrefab: {fileID: 479806513636871372, guid: 09be01bc8e597694196a560312817006, type: 3}
-  rightDoorPrefab: {fileID: 6326486661740877126, guid: d6eeb9c646209b943b984a7aeaa0f152, type: 3}
+  roomUpDownDoorPrefab: {fileID: 3482377435969413018, guid: 283e7f96dd1c2094d901c3e8ff3c028b, type: 3}
+  roomLeftDoorPrefab: {fileID: 479806513636871372, guid: 09be01bc8e597694196a560312817006, type: 3}
+  roomRightDoorPrefab: {fileID: 6326486661740877126, guid: d6eeb9c646209b943b984a7aeaa0f152, type: 3}
 --- !u!4 &951078367
 Transform:
   m_ObjectHideFlags: 0

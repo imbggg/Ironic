@@ -13,9 +13,9 @@ public class DungeonManager : MonoBehaviour
     public TileBase[] floorTiles;
     public TileBase[] wallTiles;
 
-    public GameObject frontDoorPrefab;
-    public GameObject leftDoorPrefab;
-    public GameObject rightDoorPrefab;
+    public GameObject roomUpDownDoorPrefab;
+    public GameObject roomLeftDoorPrefab;
+    public GameObject roomRightDoorPrefab;
 
     void Start()
     {
@@ -69,26 +69,22 @@ public class DungeonManager : MonoBehaviour
                     0
                 );
 
-            // 문 위치의 벽 타일 제거
             wallTilemap.SetTile(doorCell, null);
 
             GameObject prefabToSpawn;
 
-            if (door.direction == DoorDirection.Left)
+            if (door.direction == DoorDirection.RoomLeftDoor)
             {
-                prefabToSpawn = leftDoorPrefab;
+                prefabToSpawn = roomLeftDoorPrefab;
             }
-            else if (door.direction == DoorDirection.Right)
+            else if (door.direction == DoorDirection.RoomRightDoor)
             {
-                prefabToSpawn = rightDoorPrefab;
+                prefabToSpawn = roomRightDoorPrefab;
             }
             else
             {
-                prefabToSpawn = frontDoorPrefab;
+                prefabToSpawn = roomUpDownDoorPrefab;
             }
-
-            if (prefabToSpawn == null)
-                continue;
 
             GameObject obj = Instantiate(
                 prefabToSpawn,
@@ -104,7 +100,7 @@ public class DungeonManager : MonoBehaviour
 
             if (doorScript != null)
             {
-                doorScript.doorDirection = door.direction;
+                doorScript.roomDoorDirection = door.direction;
             }
         }
     }

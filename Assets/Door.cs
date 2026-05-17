@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Door : MonoBehaviour
 {
-    public DoorDirection doorDirection;
+    public DoorDirection roomDoorDirection;
 
     public float textDistance = 1.5f;
     public float openDistance = 1.2f;
@@ -34,7 +34,8 @@ public class Door : MonoBehaviour
         animator = GetComponent<Animator>();
         doorCollider = GetComponent<Collider2D>();
 
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        GameObject playerObj =
+            GameObject.FindGameObjectWithTag("Player");
 
         if (playerObj != null)
         {
@@ -166,17 +167,17 @@ public class Door : MonoBehaviour
 
         if (animator != null)
         {
-            if (doorDirection == DoorDirection.Left)
+            if (roomDoorDirection == DoorDirection.RoomLeftDoor)
             {
                 animator.Play("LeftDoor");
             }
-            else if (doorDirection == DoorDirection.Right)
+            else if (roomDoorDirection == DoorDirection.RoomRightDoor)
             {
                 animator.Play("RightDoor");
             }
             else
             {
-                animator.Play("FrontDoor");
+                animator.Play("UpDownDoor");
             }
         }
 

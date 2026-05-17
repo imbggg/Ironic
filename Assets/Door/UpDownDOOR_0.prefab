@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2566739688258134880}
   - component: {fileID: 8521397566897638046}
   m_Layer: 0
-  m_Name: FrontDOOR_0
+  m_Name: UpDownDOOR_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

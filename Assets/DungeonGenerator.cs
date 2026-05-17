@@ -3,10 +3,9 @@ using UnityEngine;
 
 public enum DoorDirection
 {
-    Up,
-    Down,
-    Left,
-    Right
+    RoomUpDownDoor,
+    RoomLeftDoor,
+    RoomRightDoor
 }
 
 public class DoorData
@@ -75,38 +74,21 @@ public class DungeonGenerator
         {
             attempts++;
 
-            // 원형 범위 안 랜덤 위치 생성
-            float angle =
-                Random.Range(0, Mathf.PI * 2);
+            float angle = Random.Range(0, Mathf.PI * 2);
+            float radius = Random.Range(0, currentRange);
 
-            float radius =
-                Random.Range(0, currentRange);
+            int x = Mathf.RoundToInt(Mathf.Cos(angle) * radius);
+            int y = Mathf.RoundToInt(Mathf.Sin(angle) * radius);
 
-            int x =
-                Mathf.RoundToInt(
-                    Mathf.Cos(angle) * radius
-                );
+            int w = Random.Range(minSize, maxSize + 1);
+            int h = Random.Range(minSize, maxSize + 1);
 
-            int y =
-                Mathf.RoundToInt(
-                    Mathf.Sin(angle) * radius
-                );
-
-            // 방 크기 생성
-            int w =
-                Random.Range(minSize, maxSize + 1);
-
-            int h =
-                Random.Range(minSize, maxSize + 1);
-
-            RectInt rect =
-                new RectInt(x, y, w, h);
+            RectInt rect = new RectInt(x, y, w, h);
 
             bool overlap = false;
 
             foreach (var r in rooms)
             {
-                // 방끼리 너무 가까워지지 않게 여유 공간 포함 검사
                 if (rect.Overlaps(
                     new RectInt(
                         r.area.x - 8,
@@ -120,7 +102,6 @@ public class DungeonGenerator
                 }
             }
 
-            // 겹치지 않을 때만 방 추가
             if (!overlap)
             {
                 int type =
@@ -128,40 +109,25 @@ public class DungeonGenerator
                     ? Random.Range(1, maxTypes)
                     : 0;
 
-                rooms.Add(
-                    new RoomData(rect, type)
-                );
+                rooms.Add(new RoomData(rect, type));
             }
 
             currentRange += 0.2f;
         }
 
-        // Prim 기반 MST 연결
         ConnectRoomsPrim();
 
-        // 방 바닥 생성
         foreach (var room in rooms)
         {
-            for (
-                int rx = room.area.xMin;
-                rx < room.area.xMax;
-                rx++
-            )
+            for (int rx = room.area.xMin; rx < room.area.xMax; rx++)
             {
-                for (
-                    int ry = room.area.yMin;
-                    ry < room.area.yMax;
-                    ry++
-                )
+                for (int ry = room.area.yMin; ry < room.area.yMax; ry++)
                 {
-                    floorTileData[
-                        new Vector2Int(rx, ry)
-                    ] = room.type;
+                    floorTileData[new Vector2Int(rx, ry)] = room.type;
                 }
             }
         }
 
-        // 벽 생성
         BuildWallsWithTypes();
     }
 
@@ -170,71 +136,41 @@ public class DungeonGenerator
         if (rooms.Count < 2)
             return;
 
-        // 연결된 방 체크
-        bool[] visited =
-            new bool[rooms.Count];
+        bool[] visited = new bool[rooms.Count];
+        List<RoomEdge> candidateEdges = new List<RoomEdge>();
 
-        // 후보 간선 저장
-        List<RoomEdge> candidateEdges =
-            new List<RoomEdge>();
-
-        // 시작 방
         visited[0] = true;
-
         int connectedCount = 1;
 
-        // 시작 방 간선 추가
-        AddCandidateEdges(
-            0,
-            visited,
-            candidateEdges
-        );
+        AddCandidateEdges(0, visited, candidateEdges);
 
-        while (
-            connectedCount < rooms.Count &&
-            candidateEdges.Count > 0
-        )
+        while (connectedCount < rooms.Count && candidateEdges.Count > 0)
         {
-            // 가장 짧은 간선 찾기
-            RoomEdge bestEdge =
-                candidateEdges[0];
+            RoomEdge bestEdge = candidateEdges[0];
 
             foreach (var edge in candidateEdges)
             {
-                if (
-                    edge.distance <
-                    bestEdge.distance
-                )
+                if (edge.distance < bestEdge.distance)
                 {
                     bestEdge = edge;
                 }
             }
 
-            // 사용한 간선 제거
             candidateEdges.Remove(bestEdge);
 
-            // 이미 연결된 방이면 무시
             if (visited[bestEdge.to])
                 continue;
 
-            // 복도 생성
             CreateCorridor(
                 rooms[bestEdge.from].area,
                 rooms[bestEdge.to].area,
                 0
             );
 
-            // 연결 처리
             visited[bestEdge.to] = true;
-
             connectedCount++;
 
-            // 새 방 기준 후보 간선 추가
-            AddCandidateEdges(
-                bestEdge.to,
-                visited,
-                candidateEdges
-            );
+            AddCandidateEdges(bestEdge.to, visited, candidateEdges);
         }
     }
 
@@ -249,7 +185,6 @@ public class DungeonGenerator
             if (visited[i])
                 continue;
 
-            // 일자 복도 가능 여부 검사
             if (!CanMakeStraightCorridor(
                 rooms[roomIndex].area,
                 rooms[i].area
@@ -258,31 +193,19 @@ public class DungeonGenerator
                 continue;
             }
 
-            // 방 중심 거리 계산
-            float distance =
-                Vector2.Distance(
-                    rooms[roomIndex].area.center,
-                    rooms[i].area.center
-                );
+            float distance = Vector2.Distance(
+                rooms[roomIndex].area.center,
+                rooms[i].area.center
+            );
 
-            RoomEdge edge =
-                new RoomEdge(
-                    roomIndex,
-                    i,
-                    distance
-                );
-
-            candidateEdges.Add(edge);
+            candidateEdges.Add(
+                new RoomEdge(roomIndex, i, distance)
+            );
         }
     }
 
-    void CreateCorridor(
-        RectInt roomA,
-        RectInt roomB,
-        int type
-    )
+    void CreateCorridor(RectInt roomA, RectInt roomB, int type)
     {
-        // 좌우 복도 생성
         if (RangesOverlap(
             roomA.yMin + 1,
             roomA.yMax - 2,
@@ -290,13 +213,12 @@ public class DungeonGenerator
             roomB.yMax - 2
         ))
         {
-            int y =
-                GetOverlapMiddle(
-                    roomA.yMin + 1,
-                    roomA.yMax - 2,
-                    roomB.yMin + 1,
-                    roomB.yMax - 2
-                );
+            int y = GetOverlapMiddle(
+                roomA.yMin + 1,
+                roomA.yMax - 2,
+                roomB.yMin + 1,
+                roomB.yMax - 2
+            );
 
             int startX;
             int endX;
@@ -309,14 +231,14 @@ public class DungeonGenerator
                 doorTileData.Add(
                     new DoorData(
                         new Vector2Int(roomA.xMax, y),
-                        DoorDirection.Right
+                        DoorDirection.RoomRightDoor
                     )
                 );
 
                 doorTileData.Add(
                     new DoorData(
                         new Vector2Int(roomB.xMin - 1, y),
-                        DoorDirection.Left
+                        DoorDirection.RoomLeftDoor
                     )
                 );
             }
@@ -328,33 +250,26 @@ public class DungeonGenerator
                 doorTileData.Add(
                     new DoorData(
                         new Vector2Int(roomB.xMax, y),
-                        DoorDirection.Right
+                        DoorDirection.RoomRightDoor
                     )
                 );
 
                 doorTileData.Add(
                     new DoorData(
                         new Vector2Int(roomA.xMin - 1, y),
-                        DoorDirection.Left
+                        DoorDirection.RoomLeftDoor
                     )
                 );
             }
 
-            for (
-                int x = Mathf.Min(startX, endX);
-                x <= Mathf.Max(startX, endX);
-                x++
-            )
+            for (int x = Mathf.Min(startX, endX); x <= Mathf.Max(startX, endX); x++)
             {
-                floorTileData[
-                    new Vector2Int(x, y)
-                ] = type;
+                floorTileData[new Vector2Int(x, y)] = type;
             }
 
             return;
         }
 
-        // 상하 복도 생성
         if (RangesOverlap(
             roomA.xMin + 1,
             roomA.xMax - 2,
@@ -362,13 +277,12 @@ public class DungeonGenerator
             roomB.xMax - 2
         ))
         {
-            int x =
-                GetOverlapMiddle(
-                    roomA.xMin + 1,
-                    roomA.xMax - 2,
-                    roomB.xMin + 1,
-                    roomB.xMax - 2
-                );
+            int x = GetOverlapMiddle(
+                roomA.xMin + 1,
+                roomA.xMax - 2,
+                roomB.xMin + 1,
+                roomB.xMax - 2
+            );
 
             int startY;
             int endY;
@@ -381,14 +295,14 @@ public class DungeonGenerator
                 doorTileData.Add(
                     new DoorData(
                         new Vector2Int(x, roomA.yMax),
-                        DoorDirection.Up
+                        DoorDirection.RoomUpDownDoor
                     )
                 );
 
                 doorTileData.Add(
                     new DoorData(
                         new Vector2Int(x, roomB.yMin - 1),
-                        DoorDirection.Down
+                        DoorDirection.RoomUpDownDoor
                     )
                 );
             }
@@ -400,86 +314,57 @@ public class DungeonGenerator
                 doorTileData.Add(
                     new DoorData(
                         new Vector2Int(x, roomB.yMax),
-                        DoorDirection.Up
+                        DoorDirection.RoomUpDownDoor
                     )
                 );
 
                 doorTileData.Add(
                     new DoorData(
                         new Vector2Int(x, roomA.yMin - 1),
-                        DoorDirection.Down
+                        DoorDirection.RoomUpDownDoor
                     )
                 );
             }
 
-            for (
-                int y = Mathf.Min(startY, endY);
-                y <= Mathf.Max(startY, endY);
-                y++
-            )
+            for (int y = Mathf.Min(startY, endY); y <= Mathf.Max(startY, endY); y++)
             {
-                floorTileData[
-                    new Vector2Int(x, y)
-                ] = type;
+                floorTileData[new Vector2Int(x, y)] = type;
             }
 
             return;
         }
     }
 
-    bool CanMakeStraightCorridor(
-        RectInt roomA,
-        RectInt roomB
-    )
+    bool CanMakeStraightCorridor(RectInt roomA, RectInt roomB)
     {
-        bool verticalOverlap =
-            RangesOverlap(
-                roomA.yMin + 1,
-                roomA.yMax - 2,
-                roomB.yMin + 1,
-                roomB.yMax - 2
-            );
+        bool verticalOverlap = RangesOverlap(
+            roomA.yMin + 1,
+            roomA.yMax - 2,
+            roomB.yMin + 1,
+            roomB.yMax - 2
+        );
 
-        bool horizontalOverlap =
-            RangesOverlap(
-                roomA.xMin + 1,
-                roomA.xMax - 2,
-                roomB.xMin + 1,
-                roomB.xMax - 2
-            );
+        bool horizontalOverlap = RangesOverlap(
+            roomA.xMin + 1,
+            roomA.xMax - 2,
+            roomB.xMin + 1,
+            roomB.xMax - 2
+        );
 
-        return
-            verticalOverlap ||
-            horizontalOverlap;
+        return verticalOverlap || horizontalOverlap;
     }
 
-    bool RangesOverlap(
-        int minA,
-        int maxA,
-        int minB,
-        int maxB
-    )
+    bool RangesOverlap(int minA, int maxA, int minB, int maxB)
     {
-        return
-            minA <= maxB &&
-            minB <= maxA;
+        return minA <= maxB && minB <= maxA;
     }
 
-    int GetOverlapMiddle(
-        int minA,
-        int maxA,
-        int minB,
-        int maxB
-    )
+    int GetOverlapMiddle(int minA, int maxA, int minB, int maxB)
     {
-        int overlapMin =
-            Mathf.Max(minA, minB);
+        int overlapMin = Mathf.Max(minA, minB);
+        int overlapMax = Mathf.Min(maxA, maxB);
 
-        int overlapMax =
-            Mathf.Min(maxA, maxB);
-
-        return
-            (overlapMin + overlapMax) / 2;
+        return (overlapMin + overlapMax) / 2;
     }
 
     void BuildWallsWithTypes()
@@ -487,7 +372,6 @@ public class DungeonGenerator
         foreach (var entry in floorTileData)
         {
             Vector2Int pos = entry.Key;
-
             int type = entry.Value;
 
             for (int x = -1; x <= 1; x++)
@@ -495,20 +379,11 @@ public class DungeonGenerator
                 for (int y = -1; y <= 1; y++)
                 {
                     Vector2Int neighbor =
-                        new Vector2Int(
-                            pos.x + x,
-                            pos.y + y
-                        );
+                        new Vector2Int(pos.x + x, pos.y + y);
 
-                    if (
-                        !floorTileData.ContainsKey(
-                            neighbor
-                        )
-                    )
+                    if (!floorTileData.ContainsKey(neighbor))
                     {
-                        wallTileData[
-                            neighbor
-                        ] = type;
+                        wallTileData[neighbor] = type;
                     }
                 }
             }

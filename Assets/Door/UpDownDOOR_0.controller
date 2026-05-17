@@ -6,7 +6,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FrontDOOR_0
+  m_Name: UpDownDOOR_0
   serializedVersion: 6
   m_AnimatorParameters: []
   m_AnimatorLayers:
@@ -81,7 +81,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FrontDoor
+  m_Name: UpDownDoor
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
